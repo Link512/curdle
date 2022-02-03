@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	tries = 6
+	tries = 1
 )
 
 func printGuesses(g []guessResult) {
@@ -19,6 +19,24 @@ func printGuesses(g []guessResult) {
 	}
 }
 
+func printWin(mainLine, underLine [10]byte, guesses []guessResult) {
+	fmt.Printf("\033[2J")
+	fmt.Println(string(mainLine[:]))
+	fmt.Println(string(underLine[:]))
+	fmt.Printf("\nCONGRATS!\n\n")
+	printGuesses(guesses)
+}
+
+func printLoss(mainLine, underLine [10]byte, guesses []guessResult, word string) {
+	fmt.Printf("\033[2J")
+	fmt.Println(string(mainLine[:]))
+	fmt.Println(string(underLine[:]))
+	fmt.Println("GAME OVER!")
+	fmt.Println("The word was", word)
+	fmt.Println()
+	printGuesses(guesses)
+}
+
 func main() {
 	finalWord := getWord()
 	g := NewGueser(finalWord)
@@ -28,32 +46,31 @@ func main() {
 	var (
 		mainLine  = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
 		underLine = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
-		errLine   string
 	)
 
 	for i := 0; i < tries; i++ {
 		fmt.Printf("\033[2J")
-		if errLine != "" {
-			fmt.Println(errLine)
-			errLine = ""
-		}
 		if i > 0 {
 			fmt.Println(string(mainLine[:]))
 			fmt.Println(string(underLine[:]))
 			fmt.Println()
 			fmt.Println("History: ", history)
 		}
-		fmt.Printf("[%d] Your guess: ", i+1)
+		fmt.Printf("Guess #%d: ", i+1)
 
 		var word string
 		fmt.Scanln(&word)
 		word = strings.ToLower(word)
 		err := checkWord(word)
-		if err != nil {
-			errLine = err.Error()
-			i--
-			continue
+		for err != nil {
+			word = ""
+			fmt.Println(err)
+			fmt.Printf("Guess #%d: ", i+1)
+			fmt.Scanln(&word)
+			word = strings.ToLower(word)
+			err = checkWord(word)
 		}
+
 		guessResult := g.Guess(word)
 		guesses = append(guesses, guessResult)
 		for i, result := range guessResult {
@@ -64,17 +81,9 @@ func main() {
 		}
 
 		if guessResult.FullGuess() {
-			fmt.Printf("\033[2J")
-			fmt.Println(string(mainLine[:]))
-			fmt.Println(string(underLine[:]))
-			fmt.Printf("\nCONGRATS!\n")
-			printGuesses(guesses)
+			printWin(mainLine, underLine, guesses)
 			return
 		}
 	}
-	fmt.Printf("\033[2J")
-	fmt.Println(string(mainLine[:]))
-	fmt.Println(string(underLine[:]))
-	fmt.Println("GAME OVER!")
-	fmt.Println("The word was", finalWord)
+	printLoss(mainLine, underLine, guesses, finalWord)
 }
