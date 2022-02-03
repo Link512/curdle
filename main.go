@@ -9,50 +9,66 @@ const (
 	tries = 6
 )
 
-func printGuesses(g []guessResult) {
+type userGuess struct {
+	word   string
+	result guessResult
+}
+
+func printFinalGuesses(g []userGuess) {
 	for i, gr := range g {
 		fmt.Printf("%d ", i+1)
-		for _, r := range gr {
+		for _, r := range gr.result {
 			fmt.Printf("%c", finalChars[r])
 		}
 		fmt.Println()
 	}
 }
 
-func printWin(mainLine, underLine [10]byte, guesses []guessResult) {
-	fmt.Printf("\033[2J")
-	fmt.Println(string(mainLine[:]))
-	fmt.Println(string(underLine[:]))
-	fmt.Printf("\nCONGRATS!\n\n")
-	printGuesses(guesses)
+func printPreviousGuesses(g []userGuess) {
+	var (
+		mainLine  = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+		underLine = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
+	)
+	for _, gr := range g {
+		for i, result := range gr.result {
+			mainLine[2*i] = gr.word[i]
+			underLine[2*i] = guessChars[result]
+		}
+		fmt.Println(string(mainLine[:]))
+		fmt.Println(string(underLine[:]))
+		fmt.Println()
+	}
 }
 
-func printLoss(mainLine, underLine [10]byte, guesses []guessResult, word string) {
+func printWin(guesses []userGuess) {
 	fmt.Printf("\033[2J")
-	fmt.Println(string(mainLine[:]))
-	fmt.Println(string(underLine[:]))
+	printPreviousGuesses(guesses)
+	fmt.Printf("\nCONGRATS!\n\n")
+
+	printFinalGuesses(guesses)
+}
+
+func printLoss(guesses []userGuess, word string) {
+	fmt.Printf("\033[2J")
+	printPreviousGuesses(guesses)
 	fmt.Println("GAME OVER!")
+
 	fmt.Println("The word was", word)
 	fmt.Println()
-	printGuesses(guesses)
+
+	printFinalGuesses(guesses)
 }
 
 func main() {
 	finalWord := getWord()
 	g := NewGueser(finalWord)
 	history := newHistory()
-	guesses := make([]guessResult, 0)
-
-	var (
-		mainLine  = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
-		underLine = [10]byte{' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '}
-	)
+	guesses := make([]userGuess, 0)
 
 	for i := 0; i < tries; i++ {
 		fmt.Printf("\033[2J")
 		if i > 0 {
-			fmt.Println(string(mainLine[:]))
-			fmt.Println(string(underLine[:]))
+			printPreviousGuesses(guesses)
 			fmt.Println()
 			fmt.Println("History: ", history)
 		}
@@ -72,18 +88,17 @@ func main() {
 		}
 
 		guessResult := g.Guess(word)
-		guesses = append(guesses, guessResult)
-		for i, result := range guessResult {
-			char := word[i]
-			history.Add(char)
-			mainLine[2*i] = char
-			underLine[2*i] = guessChars[result]
+		guesses = append(guesses, userGuess{
+			word:   word,
+			result: guessResult,
+		})
+		for i := range guessResult {
+			history.Add(word[i])
 		}
-
 		if guessResult.FullGuess() {
-			printWin(mainLine, underLine, guesses)
+			printWin(guesses)
 			return
 		}
 	}
-	printLoss(mainLine, underLine, guesses, finalWord)
+	printLoss(guesses, finalWord)
 }
