@@ -1,35 +1,35 @@
 package main
 
 type Guesser struct {
-	chars   [5]byte
-	charMap map[byte]int
+	chars [5]byte
 }
 
 func NewGueser(word string) *Guesser {
-	g := &Guesser{
-		charMap: map[byte]int{},
-	}
+	g := &Guesser{}
 	for i := range word {
-		g.charMap[word[i]]++
 		g.chars[i] = word[i]
 	}
 	return g
 }
 
 func (g *Guesser) Guess(word string) (result guessResult) {
+	charMap := make(map[byte]int, 5)
+	for _, char := range g.chars {
+		charMap[char]++
+	}
 	for i := range word {
 		char := word[i]
-		if g.chars[i] == char {
-			result[i] = DirectHit
-			g.charMap[char]--
-			if g.charMap[char] == 0 {
-				delete(g.charMap, char)
-			}
+		if _, found := charMap[char]; !found {
 			continue
 		}
-		if _, found := g.charMap[char]; found {
+		charMap[char]--
+		if charMap[char] == 0 {
+			delete(charMap, char)
+		}
+		if g.chars[i] == char {
+			result[i] = DirectHit
+		} else {
 			result[i] = Hit
-			continue
 		}
 	}
 	return
