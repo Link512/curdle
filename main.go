@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	tries = 1
+	tries = 6
 )
 
 func printGuesses(g []guessResult) {
