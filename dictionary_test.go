@@ -10,17 +10,17 @@ func TestCheckWord(t *testing.T) {
 	}{
 		{
 			name:          "empty",
-			expectedError: errNotFiveChars,
+			expectedError: errNotEnoughChars,
 		},
 		{
 			name:          "under 5 chars",
 			word:          "pie",
-			expectedError: errNotFiveChars,
+			expectedError: errNotEnoughChars,
 		},
 		{
 			name:          "over 5 chars",
 			word:          "sprinkle",
-			expectedError: errNotFiveChars,
+			expectedError: errNotEnoughChars,
 		},
 		{
 			name:          "not a word",
@@ -34,7 +34,7 @@ func TestCheckWord(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := checkWord(tc.word)
+			err := validateWord(tc.word)
 			if tc.expectedError != err {
 				t.Errorf("actual error: %+v, expected error: %+v", err, tc.expectedError)
 			}

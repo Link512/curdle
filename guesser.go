@@ -1,7 +1,7 @@
 package main
 
 type Guesser struct {
-	chars [5]byte
+	chars [wordLen]byte
 }
 
 func NewGueser(word string) *Guesser {
@@ -13,7 +13,7 @@ func NewGueser(word string) *Guesser {
 }
 
 func (g *Guesser) Guess(word string) (result guessResult) {
-	charMap := make(map[byte]int, 5)
+	charMap := make(map[byte]int, wordLen)
 	for _, char := range g.chars {
 		charMap[char]++
 	}

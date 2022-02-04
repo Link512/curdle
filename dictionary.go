@@ -1,6 +1,10 @@
 package main
 
-import "math/rand"
+import (
+	"fmt"
+	"math/rand"
+	"regexp"
+)
 
 type dictionaryError struct {
 	msg string
@@ -11,13 +15,19 @@ func (e *dictionaryError) Error() string {
 }
 
 var (
-	errNotFiveChars = &dictionaryError{"input should be exactly 5 characters"}
-	errInvalidWord  = &dictionaryError{"word not in word list"}
+	errNotEnoughChars = &dictionaryError{fmt.Sprintf("not a %d letter word", wordLen)}
+	errNotAlpha       = &dictionaryError{"word contains invalid characters"}
+	errInvalidWord    = &dictionaryError{"word does not exist"}
+
+	wordRegex = regexp.MustCompile(fmt.Sprintf(`^[a-z]{%d}$`, wordLen))
 )
 
-func checkWord(s string) *dictionaryError {
-	if len(s) != 5 {
-		return errNotFiveChars
+func validateWord(s string) *dictionaryError {
+	if len(s) != wordLen {
+		return errNotEnoughChars
+	}
+	if !wordRegex.MatchString(s) {
+		return errNotAlpha
 	}
 	if _, found := allowedWords[s]; !found {
 		return errInvalidWord

@@ -21,7 +21,7 @@ var (
 	}
 )
 
-type guessResult [5]guess
+type guessResult [wordLen]guess
 
 func (g guessResult) FullGuess() bool {
 	for _, r := range g {

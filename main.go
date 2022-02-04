@@ -6,7 +6,8 @@ import (
 )
 
 const (
-	tries = 6
+	tries   = 6
+	wordLen = 5
 )
 
 type userGuess struct {
@@ -41,7 +42,7 @@ func printPreviousGuesses(g []userGuess) {
 }
 
 func printWin(guesses []userGuess) {
-	fmt.Printf("\033[2J")
+	clear()
 	printPreviousGuesses(guesses)
 	fmt.Printf("\nCONGRATS!\n\n")
 
@@ -49,7 +50,7 @@ func printWin(guesses []userGuess) {
 }
 
 func printLoss(guesses []userGuess, word string) {
-	fmt.Printf("\033[2J")
+	clear()
 	printPreviousGuesses(guesses)
 	fmt.Println("GAME OVER!")
 
@@ -59,6 +60,10 @@ func printLoss(guesses []userGuess, word string) {
 	printFinalGuesses(guesses)
 }
 
+func clear() {
+	fmt.Printf("\033[2J")
+}
+
 func main() {
 	finalWord := getWord()
 	g := NewGueser(finalWord)
@@ -66,25 +71,24 @@ func main() {
 	guesses := make([]userGuess, 0)
 
 	for i := 0; i < tries; i++ {
-		fmt.Printf("\033[2J")
+		clear()
 		if i > 0 {
 			printPreviousGuesses(guesses)
 			fmt.Println()
 			fmt.Println("History: ", history)
 		}
-		fmt.Printf("Guess #%d: ", i+1)
 
 		var word string
-		fmt.Scanln(&word)
-		word = strings.ToLower(word)
-		err := checkWord(word)
-		for err != nil {
-			word = ""
-			fmt.Println(err)
+		for {
 			fmt.Printf("Guess #%d: ", i+1)
 			fmt.Scanln(&word)
 			word = strings.ToLower(word)
-			err = checkWord(word)
+			err := validateWord(word)
+			if err == nil {
+				break
+			}
+			fmt.Println(err)
+			word = ""
 		}
 
 		guessResult := g.Guess(word)
